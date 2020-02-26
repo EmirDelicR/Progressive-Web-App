@@ -14,6 +14,7 @@ PWA
 [Background Sync](#sync)<br/>
 [Push Notifications](#notifications)<br/>
 [Native Device](#native)
+[Workbox](#workbox)
 
 ## manifest
 
@@ -915,5 +916,128 @@ locationBtn.addEventListener('click', event => {
   );
 });
 ```
+
+[TOP](#content)
+
+# workbox
+
+[Workbox CLI](https://developers.google.com/web/tools/workbox/modules/workbox-cli)
+
+[Set caching in config file](https://developers.google.com/web/tools/workbox/guides/generate-service-worker/cli)
+
+[Config options](https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-build#.generateSW)
+
+[Official webpage/ docs](https://workboxjs.org/)
+
+[Configuring Workbox](https://workboxjs.org/reference-docs/latest/module-workbox-build.html#.Configuration)
+
+[Workbox Strategies](https://workboxjs.org/reference-docs/latest/module-workbox-sw.Strategies.html#main)
+
+[Workbox Github page](https://github.com/GoogleChrome/workbox)
+
+[Overview by Google](https://developers.google.com/web/tools/workbox/)
+
+Workbox is automatic Service Worker Management tool.
+
+```console
+sudo npm install workbox-cli --global
+```
+
+navigate to folder of project and run
+
+```console
+workbox wizard
+```
+
+Set:
+
+- directory to deploy: public/
+- select all to precache
+- file to save: public/service-worker.js
+- configuration options: workbox-config.js
+
+```json
+"scripts": {
+  "generate-sw": "workbox generateSW workbox-config.js"
+},
+```
+
+```console
+npm run generate-sw
+```
+
+**_Modifications_**
+
+do this in workbox-config.js file
+
+```js
+module.exports = {
+  globDirectory: 'public/',
+  globPatterns: ['**/*.{html,ico,json,css,js}', 'src/images/*.{jpg,png}'],
+  swSrc: 'public/sw-base.js',
+  swDest: 'public/service-worker.js',
+  globIgnores: ['help/**']
+};
+```
+
+Create a **_sw-base.js_** file to manage SW options
+
+To use this pre-configure SW add command in package.js
+
+```json
+"scripts": {
+  "generate-sw": "workbox generateSW workbox-config.js",
+  "inject-sw": "workbox injectManifest workbox-config.js"
+},
+```
+
+For inject to work you need to add this to sw-base.js file
+
+```js
+import { precacheAndRoute } from 'workbox-precaching';
+
+precacheAndRoute(self.__WB_MANIFEST);
+```
+
+This to work with webpack add this to **_webpack.config.js_** file
+
+```console
+npm i workbox-webpack-plugin --save-dev
+```
+
+```js
+const { InjectManifest } = require('workbox-webpack-plugin');
+
+...
+
+plugins: [
+  new InjectManifest({
+    swSrc: path.resolve(__dirname, 'public/service-worker.js'),
+    exclude: [/\.map$/, /asset-manifest\.json$/]
+  })
+]
+```
+
+**_Setup strategies_**
+
+[Workbox cache strategies](https://developers.google.com/web/tools/workbox/modules/workbox-strategies)
+
+in sw-base.js file
+
+```js
+import { registerRoute } from 'workbox-routing';
+import { StaleWhileRevalidate } from 'workbox-strategies';
+
+registerRoute(
+  new RegExp('.*(?:googleapis|gstatic).com.*$'),
+  new StaleWhileRevalidate({
+    cacheName: 'google-fonts'
+  })
+);
+```
+
+Now check cache Storage in Chrome Dev tool
+
+Rest of the code can be found in **_sw-base.js_**
 
 [TOP](#content)
