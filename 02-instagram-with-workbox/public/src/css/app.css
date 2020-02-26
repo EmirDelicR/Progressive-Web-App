@@ -1,0 +1,19 @@
+.text-center {
+  text-align: center;
+}
+
+.drawer-option {
+  padding: 16px;
+}
+
+.enable-notifications {
+  display: none;
+}
+
+.add-button {
+  display: none;
+}
+
+.pwa-active {
+  display: block;
+}
